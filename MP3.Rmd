@@ -97,18 +97,16 @@ As much as possible, try to do all your data wrangling here:
 Fit a logistic regression model $\widehat{f}_1$ with only an intercept term on all the training data. In other words, your model will not use any predictor variables. Save this in `model_1`. What is the uniquely fitted probability?
 
 ```{r}
-
+model_no_pred <- glm(project_is_approved~1, data= training)
 ```
 
 
-<<<<<<< HEAD
- What is the uniquely fitted probability?
- All other factors being equal, the log odds of being approved is 1.90702, therefore probability of getting approved is approx 87%
+What is the uniquely fitted probability?
+
+All other factors being equal, the log odds of being approved is 1.90702, therefore probability of getting approved is approx 87%
 
 
 
-=======
->>>>>>> parent of cdf2d81... getting model 1 probability
 ## Estimate of your Kaggle score
 
 Use the `yardstick` package to get an estimate of your Kaggle score: the area under the ROC curve (AUC). Crossvalidation is not necessary as with no predictor variables, we are in very little danger of overfitting the model. 
@@ -119,12 +117,11 @@ fitted_points_no_pred <- model_no_pred %>%
 fitted_points_no_pred
 ```
 
+
+
 ```{r}
-
-roc_auc(training, as.factor(training$project_is_approved), fitted_points_no_pred$project_is_approved )
+roc_auc(fitted_points_no_pred, as.factor(project_is_approved), .fitted)
 ```
-
-
 
 ## Make predictions on test
 
