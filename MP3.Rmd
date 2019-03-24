@@ -151,7 +151,7 @@ write_csv(submission, path = "data/submission_model_1.csv")
 
 Our score based on our submission's "Area under the Receiver Operating Characteristic Curve" was 0.5.
 
-![](score_screenshot_albert_mvp.png){ width=100% }
+![](model_1_screenshot.png){ width=100% }
 
 
 
@@ -166,7 +166,7 @@ Our score based on our submission's "Area under the Receiver Operating Character
 Use the `yardstick` package to plot the ROC curve:
 
 ```{r}
-
+autoplot(roc_curve(fitted_points_no_pred, as.factor(project_is_approved), .fitted ))
 ```
 
 
