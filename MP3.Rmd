@@ -128,16 +128,22 @@ roc_auc(fitted_points_no_pred, as.factor(project_is_approved), .fitted)
 Apply your `model_1` fitted model to the test data. What is the uniquely predicted probability?
 
 ```{r}
-
+predict_no_pred <- model_no_pred %>%
+  broom::augment(newdata = test)
+predict_no_pred
 ```
 
 
 ## Create your submission CSV
 
 ```{r}
-sample_submission %>% 
-  mutate(project_is_approved = 0.848) %>% 
-  write_csv(path = "data/submission_model_1.csv")
+submission <- test %>% 
+  mutate(project_is_approved = predict_no_pred$.fitted) %>%
+  select(id, project_is_approved)
+
+
+
+write_csv(submission, path = "data/submission_model_1.csv")
 ```
 
 
