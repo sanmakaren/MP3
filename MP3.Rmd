@@ -183,12 +183,23 @@ Fit a logistic regression model $\widehat{f}_2$ using a single numerical predict
 
 * The relationship between outcome variable $y$ and your numerical predictor variable $x$ with black points
 * The relationship between the fitted probabilities $\widehat{p}$ from model $\widehat{f}_2$ and your numerical predictor variable $x$ with a red curve
-* The fitted probabilities $\widehat{p}$ from model $\widehat{f}_1$ with a horizontal blue line
-
-at the same time.
+* The fitted probabilities $\widehat{p}$ from model $\widehat{f}_1$ with a horizontal blue line at the same time.
 
 ```{r}
+model_2 <- glm(project_is_approved~teacher_number_of_previously_posted_projects, data= training)
 
+fitted_points_model_2 <- model_2 %>%
+  broom::augment()
+
+
+ggplot(NULL) +
+  # Training data with black points:
+  geom_point(data = fitted_points_model_2, aes(x = teachnu, y = mpg)) +
+  # Fitted simple linear regression model with blue line:
+  geom_line(data = fitted_points_1, aes(x = hp, y = .fitted), col = "blue") +
+  # Predictions for test set with red points
+  geom_point(data = predicted_points_1, aes(x = hp, y = .fitted), col = "red") +
+labs(x = "Horse power", y = "Miles per gallon")
 ```
 
 
