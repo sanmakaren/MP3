@@ -310,8 +310,18 @@ fitted_points_model_1$project_grade_category <- training$project_grade_category
 
 ggplot(data = fitted_points_model_3, aes(x=project_grade_category, y=fitted_prob)) +
   geom_point() + 
-  geom_line(data = fitted_points_model_1, mapping = aes(y = fitted_prob), col = "blue", size = 1) + #plot model_1 +
-  labs(x = "grade level", y = "probability project approved")
+  geom_hline(yintercept=0.7000807, color = "blue")
+  
+
+  
+  # for some reason this doesn't work the same as above
+
+  ggplot(data = fitted_points_model_3, aes(x=project_grade_category, y=fitted_prob)) +
+    geom_point() + 
+    geom_line(
+      data = fitted_points_model_1, mapping = aes(y = fitted_prob),
+      col = "blue", size = 1) + 
+    labs(x = "grade level", y = "probability project approved") 
 
   
 
@@ -323,7 +333,7 @@ ggplot(data = fitted_points_model_3, aes(x=project_grade_category, y=fitted_prob
 Use the `yardstick` package to get an estimate of your Kaggle score: the area under the ROC curve (AUC). Crossvalidation is not necessary as with only 1 predictor variable and so many points, we are in very little danger of overfitting the model. 
 
 ```{r}
-
+roc_auc(fitted_points_model_3, as.factor(project_is_approved), binary_estimate)
 ```
 
 
@@ -332,16 +342,27 @@ Use the `yardstick` package to get an estimate of your Kaggle score: the area un
 Apply your `model_3` fitted model to the test data and display a histogram of the predicted probabilities.
 
 ```{r}
+predict_model_3 <- model_3 %>%
+  broom::augment(newdata = test) %>%
+  mutate(fitted_prob = 1/(1 + exp(-.fitted)))
 
+#does hisotogram need to show grade levels?
+ggplot(data=predict_model_3, aes(fitted_prob)) +
+  geom_histogram() +
+  labs(x = "fitted probability", title = "model_3 on test data")
 ```
 
 
 ## Create your submission CSV
 
 ```{r}
-sample_submission %>% 
-  mutate(project_is_approved = 0.848) %>% 
-  write_csv(path = "data/submission_model_3.csv")
+submission3 <- test %>% 
+  mutate(project_is_approved = (if_else(predict_model_3$fitted_prob > 0.5, 1, 0) )) %>%
+  select(id, project_is_approved)
+
+
+
+write_csv(submission2, path = "data/submission_model_3.csv")
 ```
 
 
@@ -349,7 +370,7 @@ sample_submission %>%
 
 Our score based on our submission's "Area under the Receiver Operating Characteristic Curve" was 0.5.
 
-![](score_screenshot_albert_mvp.png){ width=100% }
+![](model_3_screenshot.png){ width=100% }
 
 
 ## Plot ROC curve
@@ -357,5 +378,5 @@ Our score based on our submission's "Area under the Receiver Operating Character
 Use the `yardstick` package to plot the ROC curve:
 
 ```{r}
-
+autoplot(roc_curve(fitted_points_model_3, as.factor(project_is_approved), binary_estimate ))
 ```
