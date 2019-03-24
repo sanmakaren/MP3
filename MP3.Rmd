@@ -192,14 +192,14 @@ fitted_points_model_2 <- model_2 %>%
   broom::augment()
 
 
-ggplot(NULL) +
+ggplot(data = fitted_points_logistic, aes(x = age, y = in_financial_distress)) +
   # Training data with black points:
-  geom_point(data = fitted_points_model_2, aes(x = teachnu, y = mpg)) +
-  # Fitted simple linear regression model with blue line:
-  geom_line(data = fitted_points_1, aes(x = hp, y = .fitted), col = "blue") +
-  # Predictions for test set with red points
-  geom_point(data = predicted_points_1, aes(x = hp, y = .fitted), col = "red") +
-labs(x = "Horse power", y = "Miles per gallon")
+  geom_jitter(height = 0.01) +
+  # Best fitting linear regression line in blue:
+  geom_smooth(method = "lm", se = FALSE) +
+  # Best fitting logistic curve in red:
+  geom_line(data = fitted_points_logistic, mapping = aes(y = fitted_prob), col = "red", size = 1) +
+labs(x = "Age", y = "In financial distress?")
 ```
 
 
