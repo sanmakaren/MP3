@@ -191,15 +191,22 @@ model_2 <- glm(project_is_approved~teacher_number_of_previously_posted_projects,
 fitted_points_model_2 <- model_2 %>%
   broom::augment()
 
+fitted_points_model_2 <- fitted_points_model_2 %>%
+  mutate(fitted_prob = 1/(1 + exp(-.fitted)))
 
-ggplot(data = fitted_points_logistic, aes(x = age, y = in_financial_distress)) +
-  # Training data with black points:
-  geom_jitter(height = 0.01) +
-  # Best fitting linear regression line in blue:
-  geom_smooth(method = "lm", se = FALSE) +
-  # Best fitting logistic curve in red:
-  geom_line(data = fitted_points_logistic, mapping = aes(y = fitted_prob), col = "red", size = 1) +
-labs(x = "Age", y = "In financial distress?")
+fitted_points_no_pred <- fitted_points_no_pred %>%
+  mutate(fitted_prob = 1/(1 + exp(-.fitted)))
+
+fitted_points_no_pred$teacher_number_of_previously_posted_projects <- training$teacher_number_of_previously_posted_projects
+
+ggplot(data = fitted_points_model_2, aes(x=teacher_number_of_previously_posted_projects, y=project_is_approved)) +
+  geom_jitter(height=0.01) +
+  geom_line(data = fitted_points_no_pred, mapping = aes(y = fitted_prob), col = "blue", size = 1) + #plot model_1 probabilities
+  geom_line(data = fitted_points_model_2, mapping = aes(y = fitted_prob), col = "red", size = 1) + #plot model_2 probabilities
+  labs(x = "number of perviously posted projects", y = "project is approved")
+
+
+
 ```
 
 
