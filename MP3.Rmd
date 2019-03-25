@@ -81,7 +81,10 @@ glimpse(sample_submission)
 As much as possible, try to do all your data wrangling here:
 
 ```{r}
-
+training$project_grade_category <- as.factor(training$project_grade_category)
+training$project_grade_category <- relevel(training$project_grade_category, "Grades PreK-2")
+test$project_grade_category <- as.factor(test$project_grade_category)
+test$project_grade_category <- relevel(test$project_grade_category, "Grades PreK-2")
 ```
 
 
@@ -126,7 +129,7 @@ fitted_points_model_1 <- fitted_points_model_1 %>%
     binary_estimate = (if_else(fitted_prob > 0.5, 1, 0) ) 
     )
 
-roc_auc(fitted_points_model_1, as.factor(project_is_approved), binary_estimate)
+roc_auc(fitted_points_model_1, as.factor(project_is_approved), fitted_prob)
 ```
 
 ## Make predictions on test
@@ -173,7 +176,7 @@ Our score based on our submission's "Area under the Receiver Operating Character
 Use the `yardstick` package to plot the ROC curve:
 
 ```{r}
-autoplot(roc_curve(fitted_points_model_1, as.factor(project_is_approved), binary_estimate ))
+autoplot(roc_curve(fitted_points_model_1, as.factor(project_is_approved), fitted_prob ))
 ```
 
 
@@ -192,6 +195,12 @@ Fit a logistic regression model $\widehat{f}_2$ using a single numerical predict
 * The relationship between the fitted probabilities $\widehat{p}$ from model $\widehat{f}_2$ and your numerical predictor variable $x$ with a red curve
 * The fitted probabilities $\widehat{p}$ from model $\widehat{f}_1$ with a horizontal blue line at the same time.
 
+
+
+```{r}
+hist(training$teacher_number_of_previously_posted_projects)
+```
+
 ```{r}
 model_2 <- glm(project_is_approved ~ teacher_number_of_previously_posted_projects, data= training)
 
@@ -200,7 +209,7 @@ fitted_points_model_2 <- model_2 %>%
 
 fitted_points_model_2 <- fitted_points_model_2 %>%
     mutate(
-    fitted_prob = 1/(1 + exp(-.fitted)),
+    fitted_prob = 1/(1 + exp(.fitted)),
     binary_estimate = (if_else(fitted_prob > 0.5, 1, 0) ) 
     )
 
@@ -224,7 +233,7 @@ ggplot(data = fitted_points_model_2, aes(x=teacher_number_of_previously_posted_p
 Use the `yardstick` package to get an estimate of your Kaggle score: the area under the ROC curve (AUC). Crossvalidation is not necessary as with only 1 predictor variable and so many points, we are in very little danger of overfitting the model. 
 
 ```{r}
-roc_auc(fitted_points_model_2, as.factor(project_is_approved), binary_estimate)
+roc_auc(fitted_points_model_2, as.factor(project_is_approved), fitted_prob)
 ```
 
 
@@ -235,7 +244,7 @@ Apply your `model_2` fitted model to the test data and display a histogram of th
 ```{r}
 predict_model_2 <- model_2 %>%
   broom::augment(newdata = test) %>%
-  mutate(fitted_prob = 1/(1 + exp(-.fitted)))
+  mutate(fitted_prob = 1/(1 + exp(.fitted)))
 
 
 ggplot(data=predict_model_2, aes(predict_model_2$fitted_prob)) +
@@ -269,7 +278,7 @@ Our score based on our submission's "Area under the Receiver Operating Character
 Use the `yardstick` package to plot the ROC curve:
 
 ```{r}
-autoplot(roc_curve(fitted_points_model_2, as.factor(project_is_approved), binary_estimate ))
+autoplot(roc_curve(fitted_points_model_2, as.factor(project_is_approved), fitted_prob ))
 ```
 
 
@@ -288,8 +297,6 @@ Fit a logistic regression model $\widehat{f}_3$ using a single categorical predi
 * The fitted probabilities $\widehat{p}$ from model $\widehat{f}_1$ with a horizontal blue line at the same time.
 
 ```{r}
-training$project_grade_category <- as.factor(training$project_grade_category)
-training$project_grade_category <- relevel(training$project_grade_category, "Grades PreK-2")
 
 model_3 <- glm(project_is_approved ~ project_grade_category, data= training)
 
@@ -299,7 +306,7 @@ fitted_points_model_3 <- model_3 %>%
 
 fitted_points_model_3 <- fitted_points_model_3 %>%
     mutate(
-    fitted_prob = 1/(1 + exp(-.fitted)),
+    fitted_prob = 1/(1 + exp(.fitted)),
     binary_estimate = (if_else(fitted_prob > 0.5, 1, 0) ) 
     )
 
@@ -333,7 +340,7 @@ ggplot(data = fitted_points_model_3, aes(x=project_grade_category, y=fitted_prob
 Use the `yardstick` package to get an estimate of your Kaggle score: the area under the ROC curve (AUC). Crossvalidation is not necessary as with only 1 predictor variable and so many points, we are in very little danger of overfitting the model. 
 
 ```{r}
-roc_auc(fitted_points_model_3, as.factor(project_is_approved), binary_estimate)
+roc_auc(fitted_points_model_3, as.factor(project_is_approved), fitted_prob)
 ```
 
 
@@ -378,5 +385,5 @@ Our score based on our submission's "Area under the Receiver Operating Character
 Use the `yardstick` package to plot the ROC curve:
 
 ```{r}
-autoplot(roc_curve(fitted_points_model_3, as.factor(project_is_approved), binary_estimate ))
+autoplot(roc_curve(fitted_points_model_3, as.factor(project_is_approved), fitted_prob ))
 ```
