@@ -384,7 +384,7 @@ autoplot(roc_curve(fitted_points_model_3, as.factor(project_is_approved), fitted
 
 
 
-playing with model 4 -- proabilities dont match with project is approved for some reason 
+playing with model 4
 ```{r}
 model_4 <- glm(project_is_approved ~ project_grade_category + teacher_number_of_previously_posted_projects, data= training)
 
@@ -407,7 +407,7 @@ predict_model_4 <- model_4 %>%
 
 
 submission4 <- test %>% 
-  mutate(project_is_approved = (if_else(predict_model_3$fitted_prob > 0.5, 1, 0) )) %>%
+  mutate(project_is_approved = (if_else(predict_model_4$fitted_prob > 0.5, 1, 0) )) %>%
   select(id, project_is_approved)
 
 write_csv(submission4, path = "data/submission_model_4.csv")
