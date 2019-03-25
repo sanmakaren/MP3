@@ -369,7 +369,7 @@ submission3 <- test %>%
 
 
 
-write_csv(submission2, path = "data/submission_model_3.csv")
+write_csv(submission3, path = "data/submission_model_3.csv")
 ```
 
 
