@@ -318,7 +318,7 @@ fitted_points_model_1$project_grade_category <- training$project_grade_category
   # for some reason this doesn't work the same as above
 
   ggplot(data = fitted_points_model_3, aes(x=project_grade_category, y=fitted_prob)) +
-    geom_point() + 
+    geom_boxplot() + 
     geom_line(
       data = fitted_points_model_1, mapping = aes(y = fitted_prob, x =  project_grade_category, group = 1 ),
       col = "blue", size = 1) + 
