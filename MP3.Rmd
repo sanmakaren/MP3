@@ -326,7 +326,7 @@ ggplot(data = fitted_points_model_3, aes(x=project_grade_category, y=fitted_prob
   ggplot(data = fitted_points_model_3, aes(x=project_grade_category, y=fitted_prob)) +
     geom_point() + 
     geom_line(
-      data = fitted_points_model_1, mapping = aes(y = fitted_prob),
+      data = fitted_points_model_1, mapping = aes(y = fitted_prob, x =  project_grade_category, group = 1 ),
       col = "blue", size = 1) + 
     labs(x = "grade level", y = "probability project approved") 
 
@@ -387,3 +387,25 @@ Use the `yardstick` package to plot the ROC curve:
 ```{r}
 autoplot(roc_curve(fitted_points_model_3, as.factor(project_is_approved), fitted_prob ))
 ```
+
+
+
+
+```{r}
+model_4 <- glm(project_is_approved ~ project_grade_category + teacher_number_of_previously_posted_projects, data= training)
+
+fitted_points_model_4 <- model_4 %>%
+  broom::augment()
+
+fitted_points_model_4 <- fitted_points_model_4 %>%
+    mutate(
+    fitted_prob = 1/(1 + exp(.fitted)),
+    binary_estimate = (if_else(fitted_prob > 0.5, 1, 0) ) 
+    )
+
+autoplot(roc_curve(fitted_points_model_4, as.factor(project_is_approved), fitted_prob ))
+roc_auc(fitted_points_model_4, as.factor(project_is_approved), fitted_prob)
+
+
+```
+
