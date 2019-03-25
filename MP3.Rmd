@@ -125,7 +125,7 @@ fitted_points_model_1 <- model_1 %>%
 
 fitted_points_model_1 <- fitted_points_model_1 %>%
   mutate(
-    fitted_prob = 1/(1 + exp(-.fitted)),
+    fitted_prob = 1/(1 + exp(.fitted)),
     binary_estimate = (if_else(fitted_prob > 0.5, 1, 0) ) 
     )
 
@@ -351,7 +351,7 @@ Apply your `model_3` fitted model to the test data and display a histogram of th
 ```{r}
 predict_model_3 <- model_3 %>%
   broom::augment(newdata = test) %>%
-  mutate(fitted_prob = 1/(1 + exp(-.fitted)))
+  mutate(fitted_prob = 1/(1 + exp(.fitted)))
 
 #does hisotogram need to show grade levels?
 ggplot(data=predict_model_3, aes(fitted_prob)) +
