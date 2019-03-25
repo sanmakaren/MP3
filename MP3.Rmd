@@ -314,12 +314,6 @@ fitted_points_model_3 <- fitted_points_model_3 %>%
 fitted_points_model_1$project_grade_category <- training$project_grade_category
 
 
-
-ggplot(data = fitted_points_model_3, aes(x=project_grade_category, y=fitted_prob)) +
-  geom_point() + 
-  geom_hline(yintercept=0.7000807, color = "blue")
-  
-
   
   # for some reason this doesn't work the same as above
 
