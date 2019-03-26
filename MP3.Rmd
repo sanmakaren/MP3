@@ -76,6 +76,16 @@ In particular, pay close attention to the variables and variable types in the
 glimpse(sample_submission)
 ```
 
+```{r}
+hist(training$project_is_approved)
+```
+
+```{r}
+ggplot(data = training, aes(x=teacher_number_of_previously_posted_projects, y=project_is_approved)) +
+  geom_jitter(height=0.01)
+```
+
+
 ## Data wrangling
 
 As much as possible, try to do all your data wrangling here:
@@ -106,7 +116,7 @@ model_1 <- glm(project_is_approved~1, data= training, family = binomial())
 
 What is the uniquely fitted probability?
 
-All other factors being equal, the log odds of being approved is 1.90702, therefore probability of getting approved is approx 87%
+All other factors being equal, the log odds of being approved is 1.90702, therefore probability of getting approved is approx 84%
 
 
 
@@ -124,10 +134,12 @@ fitted_points_model_1 <- model_1 %>%
 ```{r}
 fitted_points_model_1 <- fitted_points_model_1 %>%
   mutate(
-    fitted_prob = 1/(1 + exp(.fitted))
+    fitted_prob = 1/(1 + exp(-.fitted)),
+    fitted_prob_inverse = 1/(1 + exp(.fitted))
+
     )
 
-roc_auc(fitted_points_model_1, as.factor(project_is_approved), fitted_prob)
+roc_auc(fitted_points_model_1, as.factor(project_is_approved), fitted_prob_inverse)
 ```
 
 ## Make predictions on test
@@ -173,7 +185,7 @@ Our score based on our submission's "Area under the Receiver Operating Character
 Use the `yardstick` package to plot the ROC curve:
 
 ```{r}
-autoplot(roc_curve(fitted_points_model_1, as.factor(project_is_approved), fitted_prob ))
+autoplot(roc_curve(fitted_points_model_1, as.factor(project_is_approved), fitted_prob_inverse ))
 ```
 
 
@@ -198,12 +210,17 @@ Fit a logistic regression model $\widehat{f}_2$ using a single numerical predict
 ```{r}
 model_2 <- glm(project_is_approved ~ teacher_number_of_previously_posted_projects, data= training, family = binomial())
 
+
+
+
+
 fitted_points_model_2 <- model_2 %>%
   broom::augment()
 
 fitted_points_model_2 <- fitted_points_model_2 %>%
     mutate(
-    fitted_prob = 1/(1 + exp(.fitted))
+    fitted_prob = 1/(1 + exp(-.fitted)),
+    fitted_prob_inverse = 1/(1 + exp(.fitted))
     )
 
 
@@ -226,7 +243,7 @@ ggplot(data = fitted_points_model_2, aes(x=teacher_number_of_previously_posted_p
 Use the `yardstick` package to get an estimate of your Kaggle score: the area under the ROC curve (AUC). Crossvalidation is not necessary as with only 1 predictor variable and so many points, we are in very little danger of overfitting the model. 
 
 ```{r}
-roc_auc(fitted_points_model_2, as.factor(project_is_approved), fitted_prob)
+roc_auc(fitted_points_model_2, as.factor(project_is_approved), fitted_prob_inverse)
 ```
 
 
@@ -275,7 +292,7 @@ Our score based on our submission's "Area under the Receiver Operating Character
 Use the `yardstick` package to plot the ROC curve:
 
 ```{r}
-autoplot(roc_curve(fitted_points_model_2, as.factor(project_is_approved), fitted_prob ))
+autoplot(roc_curve(fitted_points_model_2, as.factor(project_is_approved), fitted_prob_inverse ))
 ```
 
 
@@ -303,7 +320,8 @@ fitted_points_model_3 <- model_3 %>%
 
 fitted_points_model_3 <- fitted_points_model_3 %>%
     mutate(
-    fitted_prob = 1/(1 + exp(.fitted))
+    fitted_prob = 1/(1 + exp(-.fitted)),
+    fitted_prob_inverse = 1/(1 + exp(.fitted))
     )
 
 
@@ -330,7 +348,7 @@ ggplot(data = fitted_points_model_3, aes(x=project_grade_category, y=fitted_prob
 Use the `yardstick` package to get an estimate of your Kaggle score: the area under the ROC curve (AUC). Crossvalidation is not necessary as with only 1 predictor variable and so many points, we are in very little danger of overfitting the model. 
 
 ```{r}
-roc_auc(fitted_points_model_3, as.factor(project_is_approved), fitted_prob)
+roc_auc(fitted_points_model_3, as.factor(project_is_approved), fitted_prob_inverse)
 ```
 
 
@@ -379,7 +397,7 @@ Our score based on our submission's "Area under the Receiver Operating Character
 Use the `yardstick` package to plot the ROC curve:
 
 ```{r}
-autoplot(roc_curve(fitted_points_model_3, as.factor(project_is_approved), fitted_prob ))
+autoplot(roc_curve(fitted_points_model_3, as.factor(project_is_approved), fitted_prob_inverse ))
 ```
 
 
@@ -418,4 +436,5 @@ write_csv(submission4, path = "data/submission_model_4.csv")
 
 
 ```
+
 
