@@ -100,7 +100,7 @@ test$project_grade_category <- relevel(test$project_grade_category, "Grades PreK
 Fit a logistic regression model $\widehat{f}_1$ with only an intercept term on all the training data. In other words, your model will not use any predictor variables. Save this in `model_1`. What is the uniquely fitted probability?
 
 ```{r}
-model_1 <- glm(project_is_approved~1, data= training)
+model_1 <- glm(project_is_approved~1, data= training, family = binomial())
 ```
 
 
@@ -122,11 +122,9 @@ fitted_points_model_1 <- model_1 %>%
 
 
 ```{r}
-
 fitted_points_model_1 <- fitted_points_model_1 %>%
   mutate(
-    fitted_prob = 1/(1 + exp(.fitted)),
-    binary_estimate = (if_else(fitted_prob > 0.5, 1, 0) ) 
+    fitted_prob = 1/(1 + exp(.fitted))
     )
 
 roc_auc(fitted_points_model_1, as.factor(project_is_approved), fitted_prob)
@@ -147,8 +145,7 @@ predict_model_1 <- model_1 %>%
 ```{r}
 submission <- test %>% 
   mutate(
-    fitted_prob = 1/(1 + exp(-predict_model_1$.fitted)), 
-    project_is_approved = (if_else(fitted_prob > 0.5, 1, 0) ) 
+    project_is_approved = exp(predict_model_1$.fitted)/(1+exp(predict_model_1$.fitted))
     ) %>%
   select(id, project_is_approved)
 
@@ -197,20 +194,16 @@ Fit a logistic regression model $\widehat{f}_2$ using a single numerical predict
 
 
 
-```{r}
-hist(training$teacher_number_of_previously_posted_projects)
-```
 
 ```{r}
-model_2 <- glm(project_is_approved ~ teacher_number_of_previously_posted_projects, data= training)
+model_2 <- glm(project_is_approved ~ teacher_number_of_previously_posted_projects, data= training, family = binomial())
 
 fitted_points_model_2 <- model_2 %>%
   broom::augment()
 
 fitted_points_model_2 <- fitted_points_model_2 %>%
     mutate(
-    fitted_prob = 1/(1 + exp(.fitted)),
-    binary_estimate = (if_else(fitted_prob > 0.5, 1, 0) ) 
+    fitted_prob = 1/(1 + exp(.fitted))
     )
 
 
@@ -243,8 +236,12 @@ Apply your `model_2` fitted model to the test data and display a histogram of th
 
 ```{r}
 predict_model_2 <- model_2 %>%
-  broom::augment(newdata = test) %>%
-  mutate(fitted_prob = 1/(1 + exp(.fitted)))
+  broom::augment(newdata = test)
+
+predict_model_2 <- predict_model_2 %>%
+  mutate(
+    fitted_prob = exp(predict_model_2$.fitted)/(1+exp(predict_model_2$.fitted))
+    )
 
 
 ggplot(data=predict_model_2, aes(predict_model_2$fitted_prob)) +
@@ -257,7 +254,7 @@ ggplot(data=predict_model_2, aes(predict_model_2$fitted_prob)) +
 
 ```{r}
 submission2 <- test %>% 
-  mutate(project_is_approved = (if_else(predict_model_2$fitted_prob > 0.5, 1, 0) )) %>%
+  mutate(project_is_approved = predict_model_2$fitted_prob) %>%
   select(id, project_is_approved)
 
 
@@ -298,7 +295,7 @@ Fit a logistic regression model $\widehat{f}_3$ using a single categorical predi
 
 ```{r}
 
-model_3 <- glm(project_is_approved ~ project_grade_category, data= training)
+model_3 <- glm(project_is_approved ~ project_grade_category, data= training, family = binomial())
 
 
 fitted_points_model_3 <- model_3 %>%
@@ -306,8 +303,7 @@ fitted_points_model_3 <- model_3 %>%
 
 fitted_points_model_3 <- fitted_points_model_3 %>%
     mutate(
-    fitted_prob = 1/(1 + exp(.fitted)),
-    binary_estimate = (if_else(fitted_prob > 0.5, 1, 0) ) 
+    fitted_prob = 1/(1 + exp(.fitted))
     )
 
 
@@ -317,11 +313,11 @@ fitted_points_model_1$project_grade_category <- training$project_grade_category
   
   # for some reason this doesn't work the same as above
 
-  ggplot(data = fitted_points_model_3, aes(x=project_grade_category, y=fitted_prob)) +
-    geom_boxplot() + 
-    geom_line(
-      data = fitted_points_model_1, mapping = aes(y = fitted_prob, x =  project_grade_category, group=1 ),
-      col = "blue", size = 1) + 
+ggplot(data = fitted_points_model_3, aes(x=project_grade_category, y=fitted_prob)) +
+  geom_boxplot() + 
+  geom_line(
+    data = fitted_points_model_1, mapping = aes(y = fitted_prob, x =  project_grade_category, group=1 ),
+    col = "blue", size = 1) + 
     labs(x = "grade level", y = "probability project approved") 
 
   
@@ -344,8 +340,12 @@ Apply your `model_3` fitted model to the test data and display a histogram of th
 
 ```{r}
 predict_model_3 <- model_3 %>%
-  broom::augment(newdata = test) %>%
-  mutate(fitted_prob = 1/(1 + exp(.fitted)))
+  broom::augment(newdata = test)
+
+predict_model_3 <- predict_model_3 %>%
+  mutate(
+    fitted_prob = exp(predict_model_3$.fitted)/(1+exp(predict_model_3$.fitted))
+    )
 
 #does hisotogram need to show grade levels?
 ggplot(data=predict_model_3, aes(fitted_prob)) +
@@ -358,7 +358,7 @@ ggplot(data=predict_model_3, aes(fitted_prob)) +
 
 ```{r}
 submission3 <- test %>% 
-  mutate(project_is_approved = (if_else(predict_model_3$fitted_prob > 0.5, 1, 0) )) %>%
+  mutate(project_is_approved = predict_model_3$fitted_prob) %>%
   select(id, project_is_approved)
 
 
@@ -384,30 +384,34 @@ autoplot(roc_curve(fitted_points_model_3, as.factor(project_is_approved), fitted
 
 
 
-playing with model 4
+# Polishing the Cannonball
 ```{r}
-model_4 <- glm(project_is_approved ~ project_grade_category + teacher_number_of_previously_posted_projects, data= training)
+model_4 <- glm(project_is_approved ~ project_grade_category + teacher_number_of_previously_posted_projects, data= training, family = binomial())
 
 fitted_points_model_4 <- model_4 %>%
   broom::augment()
 
 fitted_points_model_4 <- fitted_points_model_4 %>%
     mutate(
-    fitted_prob = 1/(1 + exp(.fitted)),
-    binary_estimate = (if_else(fitted_prob > 0.5, 1, 0) ) 
+      fitted_prob = exp(fitted_points_model_4$.fitted)/(1+exp(fitted_points_model_4$.fitted)),
+      fitted_prob2 = 1/(1 + exp(.fitted))
     )
 
 autoplot(roc_curve(fitted_points_model_4, as.factor(project_is_approved), fitted_prob ))
-roc_auc(fitted_points_model_4, as.factor(project_is_approved), fitted_prob)
+roc_auc(fitted_points_model_4, as.factor(project_is_approved), fitted_prob2)
 
 
 predict_model_4 <- model_4 %>%
-  broom::augment(newdata = test) %>%
-  mutate(fitted_prob = 1/(1 + exp(.fitted)))
+  broom::augment(newdata = test) 
+  
+predict_model_4 <- predict_model_4 %>%
+  mutate(
+    fitted_prob = exp(predict_model_4$.fitted)/(1+exp(predict_model_4$.fitted))
+    )
 
 
 submission4 <- test %>% 
-  mutate(project_is_approved = (if_else(predict_model_4$fitted_prob > 0.5, 1, 0) )) %>%
+  mutate(project_is_approved = predict_model_4$fitted_prob) %>%
   select(id, project_is_approved)
 
 write_csv(submission4, path = "data/submission_model_4.csv")
