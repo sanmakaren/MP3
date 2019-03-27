@@ -1,6 +1,6 @@
 ---
 title: "SDS/CSC 293 Mini-Project 3: Multiple Regression"
-author: "Group XX: WRITE YOUR NAMES HERE"
+author: "Group 9: Karen Santamaria, Sophia Tannir"
 date: "Wednesday, March 27^th^, 2019"
 output:
   html_document:
@@ -15,7 +15,6 @@ editor_options:
   chunk_output_type: console
 ---
 
-just a test on
 ```{r setup, include=FALSE}
 # Load all your packages here:
 library(tidyverse)
@@ -172,7 +171,7 @@ write_csv(submission, path = "data/submission_model_1.csv")
 
 ## Screenshot of your Kaggle score
 
-Our score based on our submission's "Area under the Receiver Operating Characteristic Curve" was 0.5.
+Our score based on our submission's "Area under the Receiver Operating Characteristic Curve" was 0.500.
 
 ![](model_1_screenshot.png){ width=100% }
 
@@ -286,7 +285,7 @@ write_csv(submission2, path = "data/submission_model_2.csv")
 
 ## Screenshot of your Kaggle score
 
-Our score based on our submission's "Area under the Receiver Operating Characteristic Curve" was 0.5.
+Our score based on our submission's "Area under the Receiver Operating Characteristic Curve" was 0.56522.
 
 ![](model_2_screenshot.png){ width=100% }
 
@@ -333,8 +332,6 @@ fitted_points_model_1$project_grade_category <- training$project_grade_category
 
 
   
-  # for some reason this doesn't work the same as above
-
 ggplot(data = fitted_points_model_3, aes(x=project_grade_category, y=fitted_prob)) +
   geom_boxplot() + 
   geom_line(
@@ -369,7 +366,6 @@ predict_model_3 <- predict_model_3 %>%
     fitted_prob = exp(predict_model_3$.fitted)/(1+exp(predict_model_3$.fitted))
     )
 
-#does hisotogram need to show grade levels?
 ggplot(data=predict_model_3, aes(fitted_prob)) +
   geom_histogram() +
   labs(x = "fitted probability", title = "model_3 on test data")
@@ -391,7 +387,7 @@ write_csv(submission3, path = "data/submission_model_3.csv")
 
 ## Screenshot of your Kaggle score
 
-Our score based on our submission's "Area under the Receiver Operating Characteristic Curve" was 0.5.
+Our score based on our submission's "Area under the Receiver Operating Characteristic Curve" was 0.51156.
 
 ![](model_3_screenshot.png){ width=100% }
 
@@ -415,7 +411,24 @@ at the same time.
 
 ```{r}
 model_4 <- glm(project_is_approved ~ project_grade_category + teacher_number_of_previously_posted_projects + project_subject_categories + teacher_prefix, data= training, family = binomial())
+
+
+fitted_points_model_4 <- model_4 %>%
+  broom::augment()
+
+fitted_points_model_4 <- fitted_points_model_4 %>%
+    mutate(
+      fitted_prob = exp(fitted_points_model_4$.fitted)/(1+exp(fitted_points_model_4$.fitted)),
+      fitted_inverse = 1/(1 + exp(.fitted))
+    )
+
+
+ggplot(data = fitted_points_model_4, aes(x=teacher_number_of_previously_posted_projects, y=fitted_prob)) +
+  geom_point(aes(color = fitted_points_model_4$teacher_prefix), alpha = 0.1) +
+  facet_grid(fitted_points_model_4$project_grade_category~.) +
+  coord_cartesian(ylim = c(0.5,1))
 ```
+
 
 
 ## Estimate of your Kaggle score
@@ -423,16 +436,7 @@ model_4 <- glm(project_is_approved ~ project_grade_category + teacher_number_of_
 Use the `yardstick` package to get an estimate of your Kaggle score: the area under the ROC curve (AUC). Crossvalidation is not necessary as with only 1 predictor variable and so many points, we are in very little danger of overfitting the model. 
 
 ```{r}
-fitted_points_model_4 <- model_4 %>%
-  broom::augment()
-
-fitted_points_model_4 <- fitted_points_model_4 %>%
-    mutate(
-      fitted_prob = exp(fitted_points_model_4$.fitted)/(1+exp(fitted_points_model_4$.fitted)),
-      fitted_prob2 = 1/(1 + exp(.fitted))
-    )
-
-roc_auc(fitted_points_model_4, as.factor(project_is_approved), fitted_prob2)
+roc_auc(fitted_points_model_4, as.factor(project_is_approved), fitted_inverse)
 ```
 
 
@@ -450,8 +454,6 @@ predict_model_4 <- predict_model_4 %>%
     )
 
 
-
-
 hist(predict_model_4$fitted_prob)
 ```
 
@@ -463,13 +465,15 @@ submission4 <- test %>%
   mutate(project_is_approved = predict_model_4$fitted_prob) %>%
   select(id, project_is_approved)
 
+submission4$project_is_approved[is.na(submission4$project_is_approved)] <- 0.85
+
 write_csv(submission4, path = "data/submission_model_4.csv")
 ```
 
 
 ## Screenshot of your Kaggle score
 
-Our score based on our submission's "Area under the Receiver Operating Characteristic Curve" was 0.5.
+Our score based on our submission's "Area under the Receiver Operating Characteristic Curve" was 0.58931.
 
 ![](model_4_screenshot.png){ width=100% }
 
@@ -478,7 +482,7 @@ Our score based on our submission's "Area under the Receiver Operating Character
 Use the `yardstick` package to plot the ROC curve:
 
 ```{r}
-autoplot(roc_curve(fitted_points_model_4, as.factor(project_is_approved), fitted_prob ))
+autoplot(roc_curve(fitted_points_model_4, as.factor(project_is_approved), fitted_inverse ))
 ```
 
 
