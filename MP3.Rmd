@@ -95,6 +95,10 @@ training$project_grade_category <- as.factor(training$project_grade_category)
 training$project_grade_category <- relevel(training$project_grade_category, "Grades PreK-2")
 test$project_grade_category <- as.factor(test$project_grade_category)
 test$project_grade_category <- relevel(test$project_grade_category, "Grades PreK-2")
+training$project_subject_categories <- as.factor(training$project_subject_categories)
+test$project_subject_categories <- as.factor(test$project_subject_categories)
+training$teacher_prefix <- as.factor(training$teacher_prefix)
+test$teacher_prefix <- as.factor(test$teacher_prefix)
 ```
 
 
@@ -404,7 +408,7 @@ autoplot(roc_curve(fitted_points_model_3, as.factor(project_is_approved), fitted
 
 # Polishing the Cannonball
 ```{r}
-model_4 <- glm(project_is_approved ~ project_grade_category + teacher_number_of_previously_posted_projects, data= training, family = binomial())
+model_4 <- glm(project_is_approved ~ project_grade_category + teacher_number_of_previously_posted_projects + project_subject_categories + teacher_prefix, data= training, family = binomial())
 
 fitted_points_model_4 <- model_4 %>%
   broom::augment()
